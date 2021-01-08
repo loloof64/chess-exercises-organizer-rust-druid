@@ -8,13 +8,28 @@ use pleco::Board;
 
 #[derive(Data, Clone, Debug)]
 pub struct ChessBoardData {
-    position: String,
+    board: BoardLogic,
+}
+
+#[derive(Clone, Debug)]
+struct BoardLogic {
+    inner_logic: Board,
+}
+
+impl Data for BoardLogic {
+    fn same(&self, other: &Self) -> bool { 
+        let this_fen = self.inner_logic.fen();
+        let other_fen = other.inner_logic.fen();
+        this_fen == other_fen
+     }
 }
 
 impl ChessBoardData {
     pub fn new() -> Self {
         Self {
-            position: String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+            board: BoardLogic {
+                inner_logic: Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap(),
+            },
         }
     }
 }
@@ -108,22 +123,14 @@ impl ChessBoard {
     fn draw_pieces(&self, ctx: &mut PaintCtx, data: &ChessBoardData) {
         let total_size = ctx.size().width;
         let cells_size = total_size * 0.1111;
-        let position = data.position.as_str();
 
-        let board = Board::from_fen(position).expect(
-            format!(
-                "Could not create board logic from current position {} !",
-                position
-            )
-            .as_str(),
-        );
         for row in 0..8 {
             let rank = 7-row;
             for col in 0..8 {
                 let file = col;
 
                 let square = SQ((file + 8 * rank) as u8);
-                let piece = board.piece_at_sq(square);
+                let piece = data.board.inner_logic.piece_at_sq(square);
 
                 let piece_image_path = match piece {
                     Piece::WhitePawn => Some(include_str!("../merida/wP.svg")),
