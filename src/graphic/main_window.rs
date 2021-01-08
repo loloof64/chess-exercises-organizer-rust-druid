@@ -15,5 +15,5 @@ pub fn launch() -> Result<(), PlatformError> {
 fn ui_builder() -> impl Widget<ChessBoardData> {
     let chess_board = ChessBoard::new();
 
-    Flex::column().with_child(chess_board)
+    Flex::column().with_flex_child(chess_board, 1.0)
 }
