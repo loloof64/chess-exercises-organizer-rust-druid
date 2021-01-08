@@ -2,7 +2,9 @@ use druid::widget::{Button, Flex, Label};
 use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
 
 pub fn launch() -> Result<(), PlatformError> {
-    let main_window = WindowDesc::new(ui_builder);
+    let main_window = WindowDesc::new(ui_builder)
+        .title("Chess exercises organizer")
+        .window_size((600.0, 400.0));
     let data = 0_u32;
     AppLauncher::with_window(main_window)
         .use_simple_logger()
