@@ -1,6 +1,6 @@
-use druid::widget::{Flex};
-use druid::{AppLauncher, PlatformError, Widget, WindowDesc};
 use super::chess_board::{ChessBoard, ChessBoardData};
+use druid::widget::Flex;
+use druid::{AppLauncher, PlatformError, Widget, WindowDesc};
 
 pub fn launch() -> Result<(), PlatformError> {
     let main_window = WindowDesc::new(ui_builder)
