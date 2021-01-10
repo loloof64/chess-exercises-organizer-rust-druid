@@ -1,6 +1,7 @@
-use super::chess_board::{ChessBoard, ChessBoardData};
-use druid::widget::Flex;
+use super::chess_board::{ChessBoardData};
 use druid::{AppLauncher, PlatformError, Widget, WindowDesc};
+
+use super::board_zone::game_zone_builder;
 
 pub fn launch() -> Result<(), PlatformError> {
     let main_window = WindowDesc::new(ui_builder)
@@ -13,7 +14,5 @@ pub fn launch() -> Result<(), PlatformError> {
 }
 
 fn ui_builder() -> impl Widget<ChessBoardData> {
-    let chess_board = ChessBoard::new();
-
-    Flex::column().with_flex_child(chess_board, 1.0)
+    game_zone_builder()
 }

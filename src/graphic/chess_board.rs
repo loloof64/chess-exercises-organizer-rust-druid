@@ -10,6 +10,7 @@ use pleco::Board;
 #[derive(Data, Clone, Debug)]
 pub struct ChessBoardData {
     board: BoardLogic,
+    reversed: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -34,7 +35,12 @@ impl ChessBoardData {
                 )
                 .unwrap(),
             },
+            reversed: false,
         }
+    }
+
+    pub fn set_reversed(&mut self, reversed: bool) {
+        self.reversed = reversed;
     }
 }
 
@@ -71,13 +77,13 @@ impl ChessBoard {
         }
     }
 
-    fn draw_coordinates(&self, ctx: &mut PaintCtx, env: &Env) {
+    fn draw_coordinates(&self, ctx: &mut PaintCtx, data: &ChessBoardData, env: &Env) {
         let total_size = ctx.size().width;
         let cells_size = total_size * 0.1111;
         let font_size = cells_size * 0.3;
 
-        let files_coordinates = "ABCDEFGH";
-        let rank_coordinates = "87654321";
+        let files_coordinates = if data.reversed {"HGFEDCBA"} else {"ABCDEFGH"};
+        let rank_coordinates = if data.reversed {"12345678"} else {"87654321"};
 
         for (index, current_coord) in files_coordinates.chars().enumerate() {
             let x = cells_size * ((index as f64) + 0.9);
@@ -129,9 +135,9 @@ impl ChessBoard {
         let cells_size = total_size * 0.1111;
 
         for row in 0..8 {
-            let rank = 7 - row;
+            let rank = if data.reversed {row} else {7 - row};
             for col in 0..8 {
-                let file = col;
+                let file = if data.reversed {7-col} else {col};
 
                 let square = SQ((file + 8 * rank) as u8);
                 let piece = data.board.inner_logic.piece_at_sq(square);
@@ -240,7 +246,7 @@ impl Widget<ChessBoardData> for ChessBoard {
     fn paint(&mut self, ctx: &mut PaintCtx, data: &ChessBoardData, env: &Env) {
         self.draw_background(ctx);
         self.draw_cells(ctx);
-        self.draw_coordinates(ctx, env);
+        self.draw_coordinates(ctx, data, env);
         self.draw_pieces(ctx, data);
         self.draw_player_turn(ctx, data);
     }
