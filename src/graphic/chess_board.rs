@@ -217,11 +217,12 @@ impl Widget<ChessBoardData> for ChessBoard {
 
     fn update(
         &mut self,
-        _ctx: &mut UpdateCtx,
+        ctx: &mut UpdateCtx,
         _old_data: &ChessBoardData,
         _data: &ChessBoardData,
         _env: &Env,
     ) {
+        ctx.request_paint();
     }
 
     fn layout(
