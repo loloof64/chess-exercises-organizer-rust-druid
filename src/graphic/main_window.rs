@@ -1,7 +1,7 @@
-use super::chess_board::{ChessBoardData};
 use druid::{AppLauncher, PlatformError, Widget, WindowDesc};
 
 use super::board_zone::game_zone_builder;
+use super::chess_board::ChessBoardData;
 
 pub fn launch() -> Result<(), PlatformError> {
     let main_window = WindowDesc::new(ui_builder)
