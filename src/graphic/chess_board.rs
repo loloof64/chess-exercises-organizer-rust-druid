@@ -38,14 +38,6 @@ impl ChessBoardData {
             reversed: false,
         }
     }
-
-    pub fn set_reversed(&mut self, reversed: bool) {
-        self.reversed = reversed;
-    }
-
-    pub fn toggle_orientation(&mut self) {
-        self.reversed = !self.reversed;
-    }
 }
 
 pub struct ChessBoard;

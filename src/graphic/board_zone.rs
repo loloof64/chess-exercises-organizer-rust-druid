@@ -15,6 +15,6 @@ pub fn game_zone_builder() -> impl Widget<ChessBoardData> {
     let buttons_zone = Flex::row().with_child(button_toggle_board_orientation);
 
     Flex::column()
-        .with_child(buttons_zone)
+        .with_flex_child(buttons_zone, 0.1)
         .with_flex_child(chess_board, 1.0)
 }

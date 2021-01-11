@@ -1,7 +1,7 @@
-use druid::{theme, Affine,  Insets, LinearGradient, Size, UnitPoint};
+use druid::{theme, Affine, LinearGradient, Size, UnitPoint};
 
 use druid::widget::prelude::*;
-use druid::widget::{Click, ControllerHost, SvgData};
+use druid::widget::{SvgData};
 
 use log::error;
 
@@ -16,13 +16,6 @@ impl SvgImageToggleButton {
             image_path_active,
             image_path_inactive,
         }
-    }
-
-    pub fn on_click(
-        self,
-        f: impl Fn(&mut EventCtx, &mut bool, &Env) + 'static,
-    ) -> ControllerHost<Self, Click<bool>> {
-        ControllerHost::new(self, Click::new(f))
     }
 }
 
@@ -75,7 +68,16 @@ impl Widget<bool> for SvgImageToggleButton {
         _data: &bool,
         _env: &Env,
     ) -> Size {
-        bc.max()
+        let max_size = bc.max();
+        let max_width = max_size.width;
+        let max_height = max_size.height;
+
+        let new_common_size = if max_width < max_height {
+            max_width
+        } else {
+            max_height
+        };
+        bc.constrain(Size::new(new_common_size, new_common_size))
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &bool, env: &Env) {
