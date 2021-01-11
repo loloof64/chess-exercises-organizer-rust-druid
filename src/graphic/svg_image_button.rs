@@ -24,7 +24,7 @@ impl Widget<bool> for SvgImageToggleButton {
         &mut self,
         ctx: &mut EventCtx,
         event: &Event,
-        _data: &mut bool,
+        data: &mut bool,
         _env: &Env,
     ) {
         match event {
@@ -36,6 +36,7 @@ impl Widget<bool> for SvgImageToggleButton {
                 if ctx.is_active() {
                     ctx.set_active(false);
                     ctx.request_paint();
+                    *data = ! *data;
                 }
             }
             _ => (),
