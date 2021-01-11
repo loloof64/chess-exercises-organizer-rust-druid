@@ -1,16 +1,13 @@
 use druid::kurbo::Circle;
 use druid::text::{ArcStr, FontDescriptor, TextLayout};
 use druid::widget::prelude::*;
-use druid::{
-    widget::SvgData, Affine, FontFamily, FontWeight,
-    Rect, Color,
-};
+use druid::{widget::SvgData, Affine, Color, FontFamily, FontWeight, Lens, Rect};
 use log::error;
 
 use pleco::core::{sq::SQ, Piece, Player};
 use pleco::Board;
 
-#[derive(Data, Clone, Debug)]
+#[derive(Lens, Data, Clone, Debug)]
 pub struct ChessBoardData {
     board: BoardLogic,
     reversed: bool,

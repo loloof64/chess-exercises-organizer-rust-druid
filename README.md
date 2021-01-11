@@ -15,3 +15,7 @@ Using vectors from flaticon.com.
 * arrowUp : https://www.flaticon.com/free-icon/up-arrow_892692. Made by Pixel Perfect,
 * arrowDown : https://www.flaticon.com/free-icon/down-arrow_892634. Made by Pixel Perfect,
 
+Thanks
+---------
+
+Thanks to the members of the [Druid Zulip forum](https://xi.zulipchat.com/#narrow/stream/255910-druid-help/topic).

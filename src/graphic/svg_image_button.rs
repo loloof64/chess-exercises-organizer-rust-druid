@@ -127,9 +127,9 @@ impl Widget<bool> for SvgImageToggleButton {
         let affine_matrix = Affine::translate(image_offset) * Affine::scale(ratio);
 
         let image_to_use = if *data {
-            self.image_path_active
+            &self.image_path_active
         } else {
-            self.image_path_inactive
+            &self.image_path_inactive
         };
         let image_svg_data = match image_to_use.parse::<SvgData>() {
             Ok(svg) => svg,
