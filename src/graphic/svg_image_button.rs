@@ -6,13 +6,15 @@ use druid::widget::{SvgData};
 use log::error;
 
 pub struct SvgImageToggleButton {
+    svg_image_size : Size,
     image_path_inactive: String,
     image_path_active: String,
 }
 
 impl SvgImageToggleButton {
-    pub fn new(image_path_inactive: String, image_path_active: String) -> Self {
+    pub fn new(svg_image_size: Size, image_path_inactive: String, image_path_active: String) -> Self {
         Self {
+            svg_image_size,
             image_path_active,
             image_path_inactive,
         }
@@ -116,18 +118,13 @@ impl Widget<bool> for SvgImageToggleButton {
 
         ctx.fill(rounded_rect, &bg_gradient);
 
-        let image_size = if size.width < size.height {
-            size.width
+        let ratio = if size.width < size.height {
+            size.width / self.svg_image_size.width
         } else {
-            size.height
+            size.height / self.svg_image_size.height
         };
-        let image_offset = if size.width < size.height {
-            (0.0, image_size / 2.0)
-        } else {
-            (image_size / 2.0, 0.0)
-        };
-        let ratio = image_size / 45_f64;
-        let affine_matrix = Affine::translate(image_offset) * Affine::scale(ratio);
+
+        let affine_matrix = Affine::scale(ratio);
 
         let image_to_use = if *data {
             &self.image_path_active
