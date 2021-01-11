@@ -1,36 +1,37 @@
-use druid::{theme, Affine, Data, Insets, LinearGradient, Size, UnitPoint};
+use druid::{theme, Affine,  Insets, LinearGradient, Size, UnitPoint};
 
 use druid::widget::prelude::*;
 use druid::widget::{Click, ControllerHost, SvgData};
 
 use log::error;
 
-#[derive(Data, Clone, Debug)]
-pub struct SvgImageButtonData;
-
-pub struct SvgImageButton {
-    image_path: String,
+pub struct SvgImageToggleButton {
+    image_path_inactive: String,
+    image_path_active: String,
 }
 
-impl SvgImageButton {
-    pub fn new(path: String) -> Self {
-        Self { image_path: path }
+impl SvgImageToggleButton {
+    pub fn new(image_path_inactive: String, image_path_active: String) -> Self {
+        Self {
+            image_path_active,
+            image_path_inactive,
+        }
     }
 
     pub fn on_click(
         self,
-        f: impl Fn(&mut EventCtx, &mut SvgImageButtonData, &Env) + 'static,
-    ) -> ControllerHost<Self, Click<SvgImageButtonData>> {
+        f: impl Fn(&mut EventCtx, &mut bool, &Env) + 'static,
+    ) -> ControllerHost<Self, Click<bool>> {
         ControllerHost::new(self, Click::new(f))
     }
 }
 
-impl Widget<SvgImageButtonData> for SvgImageButton {
+impl Widget<bool> for SvgImageToggleButton {
     fn event(
         &mut self,
         ctx: &mut EventCtx,
         event: &Event,
-        _data: &mut SvgImageButtonData,
+        _data: &mut bool,
         _env: &Env,
     ) {
         match event {
@@ -52,7 +53,7 @@ impl Widget<SvgImageButtonData> for SvgImageButton {
         &mut self,
         _ctx: &mut LifeCycleCtx,
         _event: &LifeCycle,
-        _data: &SvgImageButtonData,
+        _data: &bool,
         _env: &Env,
     ) {
     }
@@ -60,8 +61,8 @@ impl Widget<SvgImageButtonData> for SvgImageButton {
     fn update(
         &mut self,
         ctx: &mut UpdateCtx,
-        _old_data: &SvgImageButtonData,
-        _data: &SvgImageButtonData,
+        _old_data: &bool,
+        _data: &bool,
         _env: &Env,
     ) {
         ctx.request_paint();
@@ -71,13 +72,13 @@ impl Widget<SvgImageButtonData> for SvgImageButton {
         &mut self,
         _ctx: &mut LayoutCtx,
         bc: &BoxConstraints,
-        _data: &SvgImageButtonData,
+        _data: &bool,
         _env: &Env,
     ) -> Size {
         bc.max()
     }
 
-    fn paint(&mut self, ctx: &mut PaintCtx, data: &SvgImageButtonData, env: &Env) {
+    fn paint(&mut self, ctx: &mut PaintCtx, data: &bool, env: &Env) {
         let size = ctx.size();
         let is_active = ctx.is_active();
         let is_hot = ctx.is_hot();
@@ -125,11 +126,16 @@ impl Widget<SvgImageButtonData> for SvgImageButton {
         let ratio = image_size / 45_f64;
         let affine_matrix = Affine::translate(image_offset) * Affine::scale(ratio);
 
-        let image_svg_data = match self.image_path.parse::<SvgData>() {
+        let image_to_use = if *data {
+            self.image_path_active
+        } else {
+            self.image_path_inactive
+        };
+        let image_svg_data = match image_to_use.parse::<SvgData>() {
             Ok(svg) => svg,
             Err(err) => {
                 error!("{}", err);
-                error!("Using an empty SVG instead of {}.", self.image_path);
+                error!("Using an empty SVG instead of {}.", image_to_use);
                 SvgData::default()
             }
         };

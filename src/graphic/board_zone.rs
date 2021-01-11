@@ -1,38 +1,25 @@
-use super::chess_board::{ChessBoard, ChessBoardData, TOGGLE_ORIENTATION};
-use super::svg_image_button::{SvgImageButton, SvgImageButtonData};
+use super::chess_board::{ChessBoard, ChessBoardData};
+use super::svg_image_button::SvgImageToggleButton;
 
-use druid::widget::{Controller, Flex};
-use druid::{Env, UpdateCtx, Widget, WidgetExt, Data, Lens};
+use druid::widget::Flex;
+use druid::{Data, Lens, Widget, WidgetExt};
 
-#[derive(Data, Lens, Clone)]
+#[derive(Data, Lens, Clone, Debug)]
 struct BoardZoneData {
-    board_reversed: bool,
+    reversed: bool,
 }
 
-struct BoardZoneDataController;
-
-impl<W: Widget<ChessBoardData>> Controller<ChessBoardData, W> for BoardZoneDataController {
-    fn update(
-        &mut self,
-        child: &mut W,
-        ctx: &mut UpdateCtx,
-        old_data: &ChessBoardData,
-        data: &ChessBoardData,
-        env: &Env,
-    ) {
-        ctx.submit_command(TOGGLE_ORIENTATION);
-        child.update(ctx, old_data, data, env);
-    }
-}
-
-pub fn game_zone_builder() -> impl Widget<BoardZoneData> {
+pub fn game_zone_builder() -> impl Widget<ChessBoardData> {
     let chess_board = ChessBoard::new();
 
-    let button_toggle_board_orientation =
-        SvgImageButton::new(String::from(include_str!("./vectors/reverseArrows.svg")));
+    let button_toggle_board_orientation = SvgImageToggleButton::new(
+        String::from(include_str!("./vectors/arrowUp.svg")),
+        String::from(include_str!("./vectors/arrowDown.svg")),
+    )
+    .lens(BoardZoneData::reversed);
     let buttons_zone = Flex::row().with_child(button_toggle_board_orientation);
 
     Flex::column()
+        .with_child(buttons_zone)
         .with_flex_child(chess_board, 1.0)
-        .controller(BoardZoneDataController)
 }

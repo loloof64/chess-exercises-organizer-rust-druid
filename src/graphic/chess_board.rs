@@ -2,17 +2,13 @@ use druid::kurbo::Circle;
 use druid::text::{ArcStr, FontDescriptor, TextLayout};
 use druid::widget::prelude::*;
 use druid::{
-    widget::SvgData, Affine, AppDelegate, Color, Command, DelegateCtx, FontFamily, FontWeight,
-    Handled, Rect, Selector, Target,
+    widget::SvgData, Affine, FontFamily, FontWeight,
+    Rect, Color,
 };
 use log::error;
 
 use pleco::core::{sq::SQ, Piece, Player};
 use pleco::Board;
-
-pub const TOGGLE_ORIENTATION: Selector = Selector::new("board.toggle_orientation");
-
-pub struct ChessBoardDelegate;
 
 #[derive(Data, Clone, Debug)]
 pub struct ChessBoardData {
@@ -23,24 +19,6 @@ pub struct ChessBoardData {
 #[derive(Clone, Debug)]
 struct BoardLogic {
     inner_logic: Board,
-}
-
-impl AppDelegate<ChessBoardData> for ChessBoardDelegate {
-    fn command(
-        &mut self,
-        _ctx: &mut DelegateCtx,
-        _target: Target,
-        cmd: &Command,
-        data: &mut ChessBoardData,
-        _env: &Env,
-    ) -> Handled {
-        if cmd.is(TOGGLE_ORIENTATION) {
-            data.toggle_orientation();
-            Handled::Yes
-        } else {
-            Handled::No
-        }
-    }
 }
 
 impl Data for BoardLogic {

@@ -11,5 +11,7 @@ FlatIcon
 ----------
 
 Using vectors from flaticon.com.
-* reverseArrows : https://www.flaticon.com/free-icon/arrows_685838. Made by  Good Ware.
+* reverseArrows : https://www.flaticon.com/free-icon/arrows_685838. Made by  Good Ware,
+* arrowUp : https://www.flaticon.com/free-icon/up-arrow_892692. Made by Pixel Perfect,
+* arrowDown : https://www.flaticon.com/free-icon/down-arrow_892634. Made by Pixel Perfect,
 
