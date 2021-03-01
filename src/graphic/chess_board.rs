@@ -86,39 +86,8 @@ impl ChessBoard {
         for row in 0..8 {
             for col in 0..8 {
                 let is_white_cell = (row + col) % 2 > 0;
-
-                let is_start_cell = if let Some(start_cell_coordinates) = &self.dnd_state.start_cell
-                {
-                    let start_cell_col = if data.reversed {
-                        7 - start_cell_coordinates.file
-                    } else {
-                        start_cell_coordinates.file
-                    };
-                    let start_cell_row = if data.reversed {
-                        start_cell_coordinates.rank
-                    } else {
-                        7 - start_cell_coordinates.rank
-                    };
-                    start_cell_col == col && start_cell_row == row
-                } else {
-                    false
-                };
-
-                let is_end_cell = if let Some(end_cell_coordinates) = &self.dnd_state.end_cell {
-                    let end_cell_col = if data.reversed {
-                        7 - end_cell_coordinates.file
-                    } else {
-                        end_cell_coordinates.file
-                    };
-                    let end_cell_row = if data.reversed {
-                        end_cell_coordinates.rank
-                    } else {
-                        7 - end_cell_coordinates.rank
-                    };
-                    end_cell_col == col && end_cell_row == row
-                } else {
-                    false
-                };
+                let is_start_cell = self.is_start_cell(data, col, row);
+                let is_end_cell = self.is_end_cell(data, col, row);
 
                 let color = if is_end_cell {
                     Color::rgb8(112, 209, 35)
@@ -262,6 +231,43 @@ impl ChessBoard {
 
         let circle = Circle::new((location, location), radius);
         ctx.fill(circle, &color);
+    }
+
+    fn is_start_cell(&self, data: &ChessBoardData, col: u8, row: u8) -> bool {
+        if let Some(start_cell_coordinates) = &self.dnd_state.start_cell
+                {
+                    let start_cell_col = if data.reversed {
+                        7 - start_cell_coordinates.file
+                    } else {
+                        start_cell_coordinates.file
+                    };
+                    let start_cell_row = if data.reversed {
+                        start_cell_coordinates.rank
+                    } else {
+                        7 - start_cell_coordinates.rank
+                    };
+                    start_cell_col == col && start_cell_row == row
+                } else {
+                    false
+                }
+    }
+
+    fn is_end_cell(&self, data: &ChessBoardData, col: u8, row: u8) -> bool {
+        if let Some(end_cell_coordinates) = &self.dnd_state.end_cell {
+            let end_cell_col = if data.reversed {
+                7 - end_cell_coordinates.file
+            } else {
+                end_cell_coordinates.file
+            };
+            let end_cell_row = if data.reversed {
+                end_cell_coordinates.rank
+            } else {
+                7 - end_cell_coordinates.rank
+            };
+            end_cell_col == col && end_cell_row == row
+        } else {
+            false
+        }
     }
 }
 
