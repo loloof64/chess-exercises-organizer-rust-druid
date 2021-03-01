@@ -40,11 +40,38 @@ impl ChessBoardData {
     }
 }
 
-pub struct ChessBoard;
+struct CellCoordinates {
+    file: u8,
+    rank: u8,
+}
+
+struct DragAndDropState {
+    active: bool,
+    start_cell: Option<CellCoordinates>,
+    end_cell: Option<CellCoordinates>,
+}
+
+impl DragAndDropState {
+    fn cancel(&mut self) {
+        self.start_cell = None;
+        self.end_cell = None;
+        self.active = false;
+    }
+}
+
+pub struct ChessBoard {
+    dnd_state: DragAndDropState,
+}
 
 impl ChessBoard {
     pub fn new() -> Self {
-        ChessBoard {}
+        ChessBoard {
+            dnd_state: DragAndDropState {
+                active: false,
+                start_cell: None,
+                end_cell: None,
+            },
+        }
     }
 
     fn draw_background(&self, ctx: &mut PaintCtx) {
@@ -53,19 +80,57 @@ impl ChessBoard {
         ctx.fill(rect, &Color::rgb8(214, 59, 96));
     }
 
-    fn draw_cells(&self, ctx: &mut PaintCtx) {
+    fn draw_cells(&self, ctx: &mut PaintCtx, data: &ChessBoardData) {
         let total_size = ctx.size().width;
         let cells_size = total_size * 0.1111;
         for row in 0..8 {
             for col in 0..8 {
                 let is_white_cell = (row + col) % 2 > 0;
-                let color = if is_white_cell {
+
+                let is_start_cell = if let Some(start_cell_coordinates) = &self.dnd_state.start_cell
+                {
+                    let start_cell_col = if data.reversed {
+                        7 - start_cell_coordinates.file
+                    } else {
+                        start_cell_coordinates.file
+                    };
+                    let start_cell_row = if data.reversed {
+                        start_cell_coordinates.rank
+                    } else {
+                        7 - start_cell_coordinates.rank
+                    };
+                    start_cell_col == col && start_cell_row == row
+                } else {
+                    false
+                };
+
+                let is_end_cell = if let Some(end_cell_coordinates) = &self.dnd_state.end_cell {
+                    let end_cell_col = if data.reversed {
+                        7 - end_cell_coordinates.file
+                    } else {
+                        end_cell_coordinates.file
+                    };
+                    let end_cell_row = if data.reversed {
+                        end_cell_coordinates.rank
+                    } else {
+                        7 - end_cell_coordinates.rank
+                    };
+                    end_cell_col == col && end_cell_row == row
+                } else {
+                    false
+                };
+
+                let color = if is_end_cell {
+                    Color::rgb8(112, 209, 35)
+                } else if is_start_cell {
+                    Color::rgb8(178, 46, 230)
+                } else if is_white_cell {
                     Color::rgb8(255, 206, 158)
                 } else {
                     Color::rgb8(209, 139, 71)
                 };
                 let x = cells_size * (0.5 + (col as f64));
-                let y = cells_size * (7.5 - (row as f64));
+                let y = cells_size * (0.5 + (row as f64));
 
                 let rect = Rect::new(x, y, x + (cells_size as f64), y + (cells_size as f64));
                 ctx.fill(rect, &color);
@@ -201,22 +266,80 @@ impl ChessBoard {
 }
 
 impl Widget<ChessBoardData> for ChessBoard {
-    fn event(
-        &mut self,
-        _ctx: &mut EventCtx,
-        _event: &Event,
-        _data: &mut ChessBoardData,
-        _env: &Env,
-    ) {
+    fn event(&mut self, ctx: &mut EventCtx, event: &Event, data: &mut ChessBoardData, _env: &Env) {
+        match event {
+            Event::MouseDown(mouse_event) => {
+                if !self.dnd_state.active {
+                    let x = mouse_event.pos.x;
+                    let y = mouse_event.pos.y;
+
+                    let total_size = ctx.size().width;
+                    let cells_size = total_size * 0.1111;
+
+                    let col = ((x - cells_size * 0.5) / cells_size).floor() as i32;
+                    let row = ((y - cells_size * 0.5) / cells_size).floor() as i32;
+
+                    let out_of_bounds = (col < 0) || (col > 7) || (row < 0) || (row > 7);
+                    if out_of_bounds {
+                        return;
+                    }
+
+                    let file = if data.reversed { 7 - col } else { col } as u8;
+                    let rank = if data.reversed { row } else { 7 - row } as u8;
+
+                    self.dnd_state.start_cell = Some(CellCoordinates { file, rank });
+                    self.dnd_state.active = true;
+                    ctx.request_update();
+                }
+            }
+            Event::MouseUp(_mouse_event) => {
+                if self.dnd_state.active {
+                    self.dnd_state.cancel();
+                    ctx.request_update();
+                }
+            }
+            Event::MouseMove(mouse_event) => {
+                if self.dnd_state.active {
+                    let x = mouse_event.pos.x;
+                    let y = mouse_event.pos.y;
+
+                    let total_size = ctx.size().width;
+                    let cells_size = total_size * 0.1111;
+
+                    let col = ((x - cells_size * 0.5) / cells_size).floor() as i32;
+                    let row = ((y - cells_size * 0.5) / cells_size).floor() as i32;
+
+                    let out_of_bounds = (col < 0) || (col > 7) || (row < 0) || (row > 7);
+                    if out_of_bounds {
+                        return;
+                    }
+
+                    let file = if data.reversed { 7 - col } else { col } as u8;
+                    let rank = if data.reversed { row } else { 7 - row } as u8;
+
+                    self.dnd_state.end_cell = Some(CellCoordinates { file, rank });
+                    ctx.request_update();
+                }
+            }
+            _ => {}
+        }
     }
 
     fn lifecycle(
         &mut self,
         _ctx: &mut LifeCycleCtx,
-        _event: &LifeCycle,
+        event: &LifeCycle,
         _data: &ChessBoardData,
         _env: &Env,
     ) {
+        match event {
+            LifeCycle::HotChanged(false) => {
+                if self.dnd_state.active {
+                    self.dnd_state.cancel();
+                }
+            }
+            _ => {}
+        }
     }
 
     fn update(
@@ -250,7 +373,7 @@ impl Widget<ChessBoardData> for ChessBoard {
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &ChessBoardData, env: &Env) {
         self.draw_background(ctx);
-        self.draw_cells(ctx);
+        self.draw_cells(ctx, data);
         self.draw_coordinates(ctx, data, env);
         self.draw_pieces(ctx, data);
         self.draw_player_turn(ctx, data);
