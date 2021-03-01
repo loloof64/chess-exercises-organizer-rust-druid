@@ -345,6 +345,10 @@ impl Widget<ChessBoardData> for ChessBoard {
                         return;
                     }
 
+                    // The moved piece must be around the mouse cursor.
+                    let x = x - cells_size * 0.5;
+                    let y = y - cells_size * 0.5;
+
                     self.dnd_state.moved_piece_location = Some((x, y));
                     self.dnd_state.moved_piece_value = Some(piece);
                     self.dnd_state.start_cell = Some(CellCoordinates { file, rank });
@@ -376,6 +380,10 @@ impl Widget<ChessBoardData> for ChessBoard {
 
                     let file = if data.reversed { 7 - col } else { col } as u8;
                     let rank = if data.reversed { row } else { 7 - row } as u8;
+
+                    // The moved piece must be around the mouse cursor.
+                    let x = x - cells_size * 0.5;
+                    let y = y - cells_size * 0.5;
 
                     self.dnd_state.moved_piece_location = Some((x, y));
                     self.dnd_state.end_cell = Some(CellCoordinates { file, rank });
