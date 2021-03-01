@@ -49,6 +49,7 @@ struct DragAndDropState {
     active: bool,
     start_cell: Option<CellCoordinates>,
     end_cell: Option<CellCoordinates>,
+
 }
 
 impl DragAndDropState {
@@ -180,27 +181,13 @@ impl ChessBoard {
                 let square = SQ((file + 8 * rank) as u8);
                 let piece = data.board.inner_logic.piece_at_sq(square);
 
-                let piece_image_path = match piece {
-                    Piece::WhitePawn => Some(include_str!("../merida/wP.svg")),
-                    Piece::WhiteKnight => Some(include_str!("../merida/wN.svg")),
-                    Piece::WhiteBishop => Some(include_str!("../merida/wB.svg")),
-                    Piece::WhiteRook => Some(include_str!("../merida/wR.svg")),
-                    Piece::WhiteQueen => Some(include_str!("../merida/wQ.svg")),
-                    Piece::WhiteKing => Some(include_str!("../merida/wK.svg")),
-                    Piece::BlackPawn => Some(include_str!("../merida/bP.svg")),
-                    Piece::BlackKnight => Some(include_str!("../merida/bN.svg")),
-                    Piece::BlackBishop => Some(include_str!("../merida/bB.svg")),
-                    Piece::BlackRook => Some(include_str!("../merida/bR.svg")),
-                    Piece::BlackQueen => Some(include_str!("../merida/bQ.svg")),
-                    Piece::BlackKing => Some(include_str!("../merida/bK.svg")),
-                    Piece::None => None,
-                };
-                if let Some(piece_image_path) = piece_image_path {
-                    let piece_svg_data = match piece_image_path.parse::<SvgData>() {
+                let piece_image_raw_data = ChessBoard::get_piece_image_raw_data(piece);
+                if let Some(piece_image_raw_data) = piece_image_raw_data {
+                    let piece_svg_data = match piece_image_raw_data.parse::<SvgData>() {
                         Ok(svg) => svg,
                         Err(err) => {
                             error!("{}", err);
-                            error!("Using an empty SVG instead of {}.", piece_image_path);
+                            error!("Using an empty SVG instead of {}.", piece_image_raw_data);
                             SvgData::default()
                         }
                     };
@@ -267,6 +254,24 @@ impl ChessBoard {
             end_cell_col == col && end_cell_row == row
         } else {
             false
+        }
+    }
+
+    fn get_piece_image_raw_data(piece: pleco::Piece) -> Option<&'static str> {
+        match piece {
+            Piece::WhitePawn => Some(include_str!("../merida/wP.svg")),
+            Piece::WhiteKnight => Some(include_str!("../merida/wN.svg")),
+            Piece::WhiteBishop => Some(include_str!("../merida/wB.svg")),
+            Piece::WhiteRook => Some(include_str!("../merida/wR.svg")),
+            Piece::WhiteQueen => Some(include_str!("../merida/wQ.svg")),
+            Piece::WhiteKing => Some(include_str!("../merida/wK.svg")),
+            Piece::BlackPawn => Some(include_str!("../merida/bP.svg")),
+            Piece::BlackKnight => Some(include_str!("../merida/bN.svg")),
+            Piece::BlackBishop => Some(include_str!("../merida/bB.svg")),
+            Piece::BlackRook => Some(include_str!("../merida/bR.svg")),
+            Piece::BlackQueen => Some(include_str!("../merida/bQ.svg")),
+            Piece::BlackKing => Some(include_str!("../merida/bK.svg")),
+            Piece::None => None,
         }
     }
 }
