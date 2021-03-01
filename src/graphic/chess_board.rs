@@ -49,13 +49,16 @@ struct DragAndDropState {
     active: bool,
     start_cell: Option<CellCoordinates>,
     end_cell: Option<CellCoordinates>,
-
+    moved_piece_value: Option<pleco::Piece>,
+    moved_piece_location: Option<(f64, f64)>,
 }
 
 impl DragAndDropState {
     fn cancel(&mut self) {
         self.start_cell = None;
         self.end_cell = None;
+        self.moved_piece_location = None;
+        self.moved_piece_value = None;
         self.active = false;
     }
 }
@@ -71,6 +74,8 @@ impl ChessBoard {
                 active: false,
                 start_cell: None,
                 end_cell: None,
+                moved_piece_location: None,
+                moved_piece_value: None,
             },
         }
     }
@@ -178,6 +183,14 @@ impl ChessBoard {
             for col in 0..8 {
                 let file = if data.reversed { 7 - col } else { col };
 
+                if let Some(start_cell_coordinates) = &self.dnd_state.start_cell {
+                    let is_start_cell_piece =
+                        file == start_cell_coordinates.file && rank == start_cell_coordinates.rank;
+                    if is_start_cell_piece {
+                        continue;
+                    }
+                }
+
                 let square = SQ((file + 8 * rank) as u8);
                 let piece = data.board.inner_logic.piece_at_sq(square);
 
@@ -194,6 +207,35 @@ impl ChessBoard {
                     let ratio = (cells_size as f64) / 45_f64;
                     let x = cells_size * (0.5 + (col as f64));
                     let y = cells_size * (0.5 + (row as f64));
+                    let affine_matrix = Affine::translate((x, y)) * Affine::scale(ratio);
+
+                    ctx.with_save(|ctx| {
+                        piece_svg_data.to_piet(affine_matrix, ctx);
+                    });
+                }
+            }
+        }
+    }
+
+    fn draw_moved_piece(&self, ctx: &mut PaintCtx) {
+        if let Some(moved_piece) = self.dnd_state.moved_piece_value {
+            let total_size = ctx.size().width;
+            let cells_size = total_size * 0.1111;
+            let ratio = (cells_size as f64) / 45_f64;
+            let piece_image_raw_data = ChessBoard::get_piece_image_raw_data(moved_piece);
+            if let Some(piece_image_raw_data) = piece_image_raw_data {
+                let piece_svg_data = match piece_image_raw_data.parse::<SvgData>() {
+                    Ok(svg) => svg,
+                    Err(err) => {
+                        error!("{}", err);
+                        error!("Using an empty SVG instead of {}.", piece_image_raw_data);
+                        SvgData::default()
+                    }
+                };
+
+                if let Some(piece_location) = self.dnd_state.moved_piece_location {
+                    let x = piece_location.0;
+                    let y = piece_location.1;
                     let affine_matrix = Affine::translate((x, y)) * Affine::scale(ratio);
 
                     ctx.with_save(|ctx| {
@@ -221,22 +263,21 @@ impl ChessBoard {
     }
 
     fn is_start_cell(&self, data: &ChessBoardData, col: u8, row: u8) -> bool {
-        if let Some(start_cell_coordinates) = &self.dnd_state.start_cell
-                {
-                    let start_cell_col = if data.reversed {
-                        7 - start_cell_coordinates.file
-                    } else {
-                        start_cell_coordinates.file
-                    };
-                    let start_cell_row = if data.reversed {
-                        start_cell_coordinates.rank
-                    } else {
-                        7 - start_cell_coordinates.rank
-                    };
-                    start_cell_col == col && start_cell_row == row
-                } else {
-                    false
-                }
+        if let Some(start_cell_coordinates) = &self.dnd_state.start_cell {
+            let start_cell_col = if data.reversed {
+                7 - start_cell_coordinates.file
+            } else {
+                start_cell_coordinates.file
+            };
+            let start_cell_row = if data.reversed {
+                start_cell_coordinates.rank
+            } else {
+                7 - start_cell_coordinates.rank
+            };
+            start_cell_col == col && start_cell_row == row
+        } else {
+            false
+        }
     }
 
     fn is_end_cell(&self, data: &ChessBoardData, col: u8, row: u8) -> bool {
@@ -298,6 +339,14 @@ impl Widget<ChessBoardData> for ChessBoard {
                     let file = if data.reversed { 7 - col } else { col } as u8;
                     let rank = if data.reversed { row } else { 7 - row } as u8;
 
+                    let square = SQ((file + 8 * rank) as u8);
+                    let piece = data.board.inner_logic.piece_at_sq(square);
+                    if piece == Piece::None {
+                        return;
+                    }
+
+                    self.dnd_state.moved_piece_location = Some((x, y));
+                    self.dnd_state.moved_piece_value = Some(piece);
                     self.dnd_state.start_cell = Some(CellCoordinates { file, rank });
                     self.dnd_state.active = true;
                     ctx.request_update();
@@ -328,6 +377,7 @@ impl Widget<ChessBoardData> for ChessBoard {
                     let file = if data.reversed { 7 - col } else { col } as u8;
                     let rank = if data.reversed { row } else { 7 - row } as u8;
 
+                    self.dnd_state.moved_piece_location = Some((x, y));
                     self.dnd_state.end_cell = Some(CellCoordinates { file, rank });
                     ctx.request_update();
                 }
@@ -387,6 +437,7 @@ impl Widget<ChessBoardData> for ChessBoard {
         self.draw_cells(ctx, data);
         self.draw_coordinates(ctx, data, env);
         self.draw_pieces(ctx, data);
+        self.draw_moved_piece(ctx);
         self.draw_player_turn(ctx, data);
     }
 }
