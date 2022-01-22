@@ -63,6 +63,16 @@ impl DragAndDropState {
     }
 }
 
+fn coordinates_to_square_algebraic(coordinates: &CellCoordinates) -> String {
+    let file_str = (('a' as u8) + coordinates.file) as char;
+    let rank_str = (('1' as u8) + coordinates.rank) as char;
+    format!(
+        "{}{}",
+        file_str,
+        rank_str,
+    )
+}
+
 pub struct ChessBoard {
     dnd_state: DragAndDropState,
 }
@@ -358,6 +368,27 @@ impl Widget<ChessBoardData> for ChessBoard {
             }
             Event::MouseUp(_mouse_event) => {
                 if self.dnd_state.active {
+                    let start_square_algebraic = if let Some(ref start_cell) = self.dnd_state.start_cell {
+                        coordinates_to_square_algebraic(start_cell)
+                    }
+                    else {
+                        "".to_string()
+                    };
+                    let end_square_algebraic = if let Some(ref end_cell) = self.dnd_state.end_cell {
+                        coordinates_to_square_algebraic(end_cell)
+                    }
+                    else {
+                        "".to_string()
+                    };
+                    let promotion_piece = "";
+                    let move_to_play = format!(
+                        "{}{}{}",
+                        start_square_algebraic,
+                        end_square_algebraic,
+                        promotion_piece,
+                    );
+                    data.board.inner_logic.apply_uci_move(&move_to_play);
+                    
                     self.dnd_state.cancel();
                     ctx.request_update();
                 }
