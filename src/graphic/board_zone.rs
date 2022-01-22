@@ -9,8 +9,8 @@ pub fn game_zone_builder() -> impl Widget<ChessBoardData> {
 
     let button_toggle_board_orientation = SvgImageToggleButton::new(
         Size::new(490.667, 490.667),
-        String::from(include_str!("./vectors/arrowUp.svg")),
-        String::from(include_str!("./vectors/arrowDown.svg")),
+        String::from(include_str!("./vectors/reverseArrows.svg")),
+        String::from(include_str!("./vectors/reverseArrows.svg")),
     )
     .lens(ChessBoardData::reversed);
     let buttons_zone = Flex::row().with_child(button_toggle_board_orientation).padding(1.0);
